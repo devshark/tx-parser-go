@@ -53,7 +53,7 @@ func (p *ParserWorker) Run(ctx context.Context, startBlock int64, schedule time.
 						p.logger.Printf("failed to parse block %d: %v", blockNum, err)
 					}
 
-					p.logger.Print("parsed block ", blockNum)
+					// p.logger.Print("parsed block ", blockNum)
 				}(_blockNum)
 			}
 

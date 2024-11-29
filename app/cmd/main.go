@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,29 +18,26 @@ import (
 )
 
 const (
-	publicNodeURL    = "https://ethereum-rpc.publicnode.com/"
 	shutdownTimeout  = 5 * time.Second
 	httpReadTimeout  = 5 * time.Second
 	httpWriteTimeout = 10 * time.Second
-	port             = "8080"
-	startBlock       = 21292394
-	jobSchedule      = time.Duration(5 * time.Second)
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	config := NewConfig()
 	logger := log.Default()
 
-	blockchainClient := blockchain.NewPublicNodeClient(publicNodeURL, logger)
+	blockchainClient := blockchain.NewPublicNodeClient(config.publicNodeURL, logger)
 
 	repository := repository.NewInMemoryRepository()
 
 	parser := worker.NewParserWorker(blockchainClient, repository, logger)
 
 	server := &http.Server{
-		Addr:              ":" + port,
+		Addr:              fmt.Sprintf(":%d", config.port),
 		Handler:           httpHandler.NewServeMux(blockchainClient, repository, logger),
 		ReadTimeout:       httpReadTimeout,
 		WriteTimeout:      httpWriteTimeout,
@@ -48,9 +46,17 @@ func main() {
 	}
 
 	stop := make(chan os.Signal, 1)
+	signal.Notify(
+		stop,
+		os.Interrupt,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
 
 	go func() {
-		logger.Printf("listening on port %s", port)
+		logger.Printf("listening on port %d", config.port)
 
 		if err := server.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
 			logger.Fatalf("http server closed: %v", err)
@@ -60,21 +66,12 @@ func main() {
 	go func() {
 		logger.Println("starting the parser worker")
 
-		if err := parser.Run(ctx, startBlock, jobSchedule); err != nil {
+		if err := parser.Run(ctx, int64(config.startBlock), config.jobSchedule); err != nil {
 			logger.Fatalf("failed to run parser: %v", err)
 		}
 
 		logger.Println("parser worker stopped")
 	}()
-
-	signal.Notify(
-		stop,
-		os.Interrupt,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-	)
 
 	logger.Print("the app is running")
 
@@ -89,4 +86,20 @@ func main() {
 	}
 
 	log.Print("Gracefully stopped.")
+}
+
+type Config struct {
+	publicNodeURL string
+	port          int
+	startBlock    int
+	jobSchedule   time.Duration
+}
+
+func NewConfig() *Config {
+	return &Config{
+		publicNodeURL: "https://ethereum-rpc.publicnode.com/",
+		port:          8080,
+		startBlock:    21292394,
+		jobSchedule:   time.Duration(5 * time.Second),
+	}
 }

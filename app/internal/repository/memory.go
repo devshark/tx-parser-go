@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 
@@ -24,8 +23,6 @@ func NewInMemoryRepository() Repository {
 }
 func (r *InMemoryRepository) SaveTransaction(ctx context.Context, address string, tx api.Transaction) error {
 	address = strings.TrimSpace(strings.ToLower(address))
-
-	fmt.Println("address", address)
 
 	if address == "" {
 		return ErrEmptyAddress
