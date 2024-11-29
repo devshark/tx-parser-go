@@ -1,5 +1,7 @@
 # Ethereum TX Parser in Go
 
+![Tests](https://github.com/devshark/tx-parser-go/actions/workflows/run-tests.yaml/badge.svg?branch=main)
+
 ## Overview of this repository and project
 
 This repository contains the server and client for an ethereum transaction scraper.
