@@ -9,7 +9,7 @@ import (
 	"github.com/devshark/tx-parser-go/api"
 	"github.com/devshark/tx-parser-go/app/internal/blockchain"
 	"github.com/devshark/tx-parser-go/app/internal/repository"
-	"github.com/devshark/tx-parser-go/app/internal/retry"
+	"github.com/devshark/tx-parser-go/pkg/retry"
 )
 
 type ParserWorker struct {

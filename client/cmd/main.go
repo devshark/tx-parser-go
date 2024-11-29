@@ -8,22 +8,19 @@ import (
 	"time"
 
 	"github.com/devshark/tx-parser-go/client"
+	"github.com/devshark/tx-parser-go/pkg"
 )
 
-var sampleAddresses = []string{
-	"0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5",
-	"0x6eaE5e2d47f1CbB5979734812521579921d37C9A",
-}
-
 func main() {
+	config := NewConfig()
 	logger := log.Default()
 
-	parserClient := client.NewClient("http://localhost:8080")
+	parserClient := client.NewClient(config.parserUrl)
 
 	currentBlock := parserClient.GetCurrentBlock()
 	logger.Printf("current block: %d", currentBlock)
 
-	for _, address := range sampleAddresses {
+	for _, address := range config.subscribeAddresses {
 		parserClient.Subscribe(address)
 		logger.Printf("subscribed to %s", address)
 	}
@@ -43,8 +40,8 @@ func main() {
 		select {
 		case <-stop:
 			return
-		case <-time.After(5 * time.Second):
-			for _, address := range sampleAddresses {
+		case <-time.After(config.fetchFrequency):
+			for _, address := range config.subscribeAddresses {
 				transactions := parserClient.GetTransactions(address)
 				logger.Printf("%d transactions for %s\n", len(transactions), address)
 				// logger.Printf("%d transactions for %s: %+v\n", len(transactions), address, transactions)
@@ -52,4 +49,18 @@ func main() {
 		}
 	}
 
+}
+
+type Config struct {
+	parserUrl          string
+	fetchFrequency     time.Duration
+	subscribeAddresses []string
+}
+
+func NewConfig() *Config {
+	return &Config{
+		parserUrl:          pkg.GetEnv("PARSER_URL", "http://localhost:8081"),
+		fetchFrequency:     pkg.GetEnvDuration("FETCH_FREQUENCY", 5*time.Second),
+		subscribeAddresses: pkg.GetEnvValues("SUBSCRIBE_ADDRESSES"),
+	}
 }

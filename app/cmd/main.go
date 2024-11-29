@@ -15,6 +15,7 @@ import (
 	"github.com/devshark/tx-parser-go/app/internal/blockchain"
 	"github.com/devshark/tx-parser-go/app/internal/repository"
 	"github.com/devshark/tx-parser-go/app/worker"
+	"github.com/devshark/tx-parser-go/pkg"
 )
 
 const (
@@ -66,7 +67,7 @@ func main() {
 	go func() {
 		logger.Println("starting the parser worker")
 
-		if err := parser.Run(ctx, int64(config.startBlock), config.jobSchedule); err != nil {
+		if err := parser.Run(ctx, config.startBlock, config.jobSchedule); err != nil {
 			logger.Fatalf("failed to run parser: %v", err)
 		}
 
@@ -90,16 +91,16 @@ func main() {
 
 type Config struct {
 	publicNodeURL string
-	port          int
-	startBlock    int
+	port          int64
+	startBlock    int64
 	jobSchedule   time.Duration
 }
 
 func NewConfig() *Config {
 	return &Config{
-		publicNodeURL: "https://ethereum-rpc.publicnode.com/",
-		port:          8080,
-		startBlock:    21292394,
-		jobSchedule:   time.Duration(5 * time.Second),
+		publicNodeURL: pkg.GetEnv("PUBLIC_NODE_URL", "https://ethereum-rpc.publicnode.com/"),
+		port:          pkg.GetEnvInt64("PORT", 8080),
+		startBlock:    pkg.GetEnvInt64("START_BLOCK", 21292394),
+		jobSchedule:   pkg.GetEnvDuration("JOB_SCHEDULE", 5*time.Second),
 	}
 }
