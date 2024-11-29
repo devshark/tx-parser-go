@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/devshark/tx-parser-go/app/internal/retry"
+	"github.com/devshark/tx-parser-go/pkg/retry"
 )
 
 func TestRetry(t *testing.T) {
