@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -37,14 +36,8 @@ func main() {
 
 	parser := worker.NewParserWorker(blockchainClient, repository, logger)
 
-	server := &http.Server{
-		Addr:              fmt.Sprintf(":%d", config.port),
-		Handler:           httpHandler.NewServeMux(blockchainClient, repository, logger),
-		ReadTimeout:       httpReadTimeout,
-		WriteTimeout:      httpWriteTimeout,
-		ReadHeaderTimeout: 0,
-		MaxHeaderBytes:    1 << 20,
-	}
+	router := httpHandler.NewRouter(blockchainClient, repository, logger)
+	server := httpHandler.NewHttpServer(router, config.port, httpReadTimeout, httpWriteTimeout)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(

@@ -1,14 +1,16 @@
 package http
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/devshark/tx-parser-go/app/internal/blockchain"
 	"github.com/devshark/tx-parser-go/app/internal/repository"
 )
 
-func NewServeMux(bcClient blockchain.BlockchainClient, repo repository.Repository, logger *log.Logger) http.Handler {
+func NewRouter(bcClient blockchain.BlockchainClient, repo repository.Repository, logger *log.Logger) http.Handler {
 	mux := http.NewServeMux()
 
 	handler := &httpHandler{
@@ -23,4 +25,15 @@ func NewServeMux(bcClient blockchain.BlockchainClient, repo repository.Repositor
 	mux.HandleFunc("POST /subscribe/{address}", handler.PostSubscribeAddress)
 
 	return mux
+}
+
+func NewHttpServer(httpHandlers http.Handler, port int64, httpReadTimeout, httpWriteTimeout time.Duration) *http.Server {
+	return &http.Server{
+		Addr:              fmt.Sprintf(":%d", port),
+		Handler:           httpHandlers,
+		ReadTimeout:       httpReadTimeout,
+		WriteTimeout:      httpWriteTimeout,
+		ReadHeaderTimeout: 0,
+		MaxHeaderBytes:    1 << 20,
+	}
 }
