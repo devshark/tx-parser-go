@@ -29,8 +29,7 @@ func (r *InMemoryRepository) SaveTransaction(ctx context.Context, address string
 	r.muTx.Lock()
 	defer r.muTx.Unlock()
 
-	r.transactions[tx.From] = append(r.transactions[tx.From], tx)
-	r.transactions[tx.To] = append(r.transactions[tx.To], tx)
+	r.transactions[address] = append(r.transactions[address], tx)
 
 	return nil
 }

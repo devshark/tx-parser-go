@@ -1,4 +1,4 @@
-package service
+package worker
 
 import (
 	"context"
@@ -70,6 +70,10 @@ func (p *ParserWorker) parseBlock(ctx context.Context, blockNum int64) error {
 		return err
 	}
 
+	if block == nil {
+		return nil
+	}
+
 	for _, tx := range block.Transactions {
 		if err := p.processTx(ctx, tx); err != nil {
 			return err
@@ -82,8 +86,10 @@ func (p *ParserWorker) parseBlock(ctx context.Context, blockNum int64) error {
 // processTx processes a single transaction
 func (p *ParserWorker) processTx(ctx context.Context, tx api.Transaction) error {
 	addresses := []string{tx.From, tx.To}
+	p.logger.Println("addresses", addresses)
+
 	for _, addr := range addresses {
-		subscribed, err := p.repo.IsSubscribed(ctx, tx.From)
+		subscribed, err := p.repo.IsSubscribed(ctx, addr)
 		if err != nil {
 			return err
 		}
