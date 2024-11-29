@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/devshark/tx-parser-go/client"
-	"github.com/devshark/tx-parser-go/pkg"
+	"github.com/devshark/tx-parser-go/pkg/env"
 )
 
 func main() {
@@ -59,8 +59,8 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		parserUrl:          pkg.GetEnv("PARSER_URL", "http://localhost:8081"),
-		fetchFrequency:     pkg.GetEnvDuration("FETCH_FREQUENCY", 5*time.Second),
-		subscribeAddresses: pkg.GetEnvValues("SUBSCRIBE_ADDRESSES"),
+		parserUrl:          env.GetEnv("PARSER_URL", "http://localhost:8081"),
+		fetchFrequency:     env.GetEnvDuration("FETCH_FREQUENCY", 5*time.Second),
+		subscribeAddresses: env.GetEnvValues("SUBSCRIBE_ADDRESSES"),
 	}
 }

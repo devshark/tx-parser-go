@@ -15,7 +15,7 @@ import (
 	"github.com/devshark/tx-parser-go/app/internal/blockchain"
 	"github.com/devshark/tx-parser-go/app/internal/repository"
 	"github.com/devshark/tx-parser-go/app/worker"
-	"github.com/devshark/tx-parser-go/pkg"
+	"github.com/devshark/tx-parser-go/pkg/env"
 )
 
 const (
@@ -98,9 +98,9 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		publicNodeURL: pkg.GetEnv("PUBLIC_NODE_URL", "https://ethereum-rpc.publicnode.com/"),
-		port:          pkg.GetEnvInt64("PORT", 8080),
-		startBlock:    pkg.GetEnvInt64("START_BLOCK", 21292394),
-		jobSchedule:   pkg.GetEnvDuration("JOB_SCHEDULE", 5*time.Second),
+		publicNodeURL: env.GetEnv("PUBLIC_NODE_URL", "https://ethereum-rpc.publicnode.com/"),
+		port:          env.GetEnvInt64("PORT", 8080),
+		startBlock:    env.GetEnvInt64("START_BLOCK", 21292394),
+		jobSchedule:   env.GetEnvDuration("JOB_SCHEDULE", 5*time.Second),
 	}
 }
