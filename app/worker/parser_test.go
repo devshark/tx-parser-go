@@ -47,8 +47,8 @@ func TestParserWorker_Run(t *testing.T) {
 	mockBC := &MockBlockchainClient{
 		latestBlockNumber: 10,
 		blocks: map[int64]*api.Block{
-			1: {Number: 1, Transactions: []api.Transaction{{From: "0x1", To: "0x2", Value: 100}}},
-			2: {Number: 2, Transactions: []api.Transaction{{From: "0x2", To: "0x3", Value: 200}}},
+			1: {Number: 1, Transactions: []api.Transaction{{From: "0x1", To: "0x2", Hash: "0x999", Value: 100}}},
+			2: {Number: 2, Transactions: []api.Transaction{{From: "0x2", To: "0x3", Hash: "0x888", Value: 200}}},
 		},
 	}
 	mockRepo := repository.NewInMemoryRepository()

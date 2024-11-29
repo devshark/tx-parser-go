@@ -45,7 +45,7 @@ func TestSaveTransaction(t *testing.T) {
 		Value: 200,
 	}
 
-	err = repo.SaveTransaction(ctx, tx.From, txEmptyFrom)
+	err = repo.SaveTransaction(ctx, txEmptyFrom.From, txEmptyFrom)
 	if err == nil {
 		t.Fatal("Expected error when saving transaction with empty From address, got nil")
 	}
@@ -58,7 +58,7 @@ func TestSaveTransaction(t *testing.T) {
 		Value: 300,
 	}
 
-	err = repo.SaveTransaction(ctx, tx.From, txEmptyTo)
+	err = repo.SaveTransaction(ctx, txEmptyTo.To, txEmptyTo)
 	if err == nil {
 		t.Fatal("Expected error when saving transaction with empty To address, got nil")
 	}

@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/devshark/tx-parser-go/api"
@@ -41,7 +42,7 @@ func (p *ParserWorker) Run(ctx context.Context, startBlock int64, schedule time.
 				return err
 			}
 
-			p.logger.Printf("last parsed block: %d, latest block: %d", lastParsedBlock, latestBlock)
+			// p.logger.Printf("last parsed block: %d, latest block: %d", lastParsedBlock, latestBlock)
 
 			for _blockNum := lastParsedBlock + 1; _blockNum <= latestBlock; _blockNum++ {
 				go func(blockNum int64) {
@@ -86,9 +87,12 @@ func (p *ParserWorker) parseBlock(ctx context.Context, blockNum int64) error {
 // processTx processes a single transaction
 func (p *ParserWorker) processTx(ctx context.Context, tx api.Transaction) error {
 	addresses := []string{tx.From, tx.To}
-	p.logger.Println("addresses", addresses)
 
 	for _, addr := range addresses {
+		if strings.TrimSpace(addr) == "" { // just skip immediately if address is empty
+			continue
+		}
+
 		subscribed, err := p.repo.IsSubscribed(ctx, addr)
 		if err != nil {
 			return err

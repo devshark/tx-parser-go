@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/devshark/tx-parser-go/api"
@@ -20,21 +22,36 @@ func NewInMemoryRepository() Repository {
 		transactions: make(map[string][]api.Transaction),
 	}
 }
-
 func (r *InMemoryRepository) SaveTransaction(ctx context.Context, address string, tx api.Transaction) error {
-	if address == "" || tx.From == "" || tx.To == "" {
+	address = strings.TrimSpace(strings.ToLower(address))
+
+	fmt.Println("address", address)
+
+	if address == "" {
 		return ErrEmptyAddress
 	}
 
 	r.muTx.Lock()
 	defer r.muTx.Unlock()
 
-	r.transactions[address] = append(r.transactions[address], tx)
+	// skip if tx hash already exists
+	txs, ok := r.transactions[address]
+	if ok {
+		for _, _tx := range txs {
+			if strings.EqualFold(_tx.Hash, tx.Hash) {
+				return nil
+			}
+		}
+	}
+
+	r.transactions[address] = append(txs, tx)
 
 	return nil
 }
 
 func (r *InMemoryRepository) GetTransactions(ctx context.Context, address string) ([]api.Transaction, error) {
+	address = strings.TrimSpace(strings.ToLower(address))
+
 	if address == "" {
 		return nil, ErrEmptyAddress
 	}
@@ -47,6 +64,8 @@ func (r *InMemoryRepository) GetTransactions(ctx context.Context, address string
 
 // Subscribe creates a new transaction slice for the given address if it doesn't exist; does not overwrite existing address' transactions
 func (r *InMemoryRepository) Subscribe(ctx context.Context, address string) error {
+	address = strings.TrimSpace(strings.ToLower(address))
+
 	if address == "" {
 		return ErrEmptyAddress
 	}
@@ -62,6 +81,8 @@ func (r *InMemoryRepository) Subscribe(ctx context.Context, address string) erro
 }
 
 func (r *InMemoryRepository) IsSubscribed(ctx context.Context, address string) (bool, error) {
+	address = strings.TrimSpace(strings.ToLower(address))
+
 	if address == "" {
 		return false, ErrEmptyAddress
 	}

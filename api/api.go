@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"time"
 )
 
@@ -37,8 +36,10 @@ type Transaction struct {
 
 // Parser interface as defined in the requirements
 type Parser interface {
-	GetCurrentBlock() int64
+	// last parsed block
+	GetCurrentBlock() int
+	// add address to observer
 	Subscribe(address string) bool
+	// list of inbound or outbound transactions for an address
 	GetTransactions(address string) []Transaction
-	Parse(ctx context.Context) error
 }
