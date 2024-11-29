@@ -59,15 +59,17 @@ func main() {
 	go func() {
 		logger.Printf("listening on port %d", config.port)
 
-		if err := server.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
-			logger.Fatalf("http server closed: %v", err)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatalf("http server failed to start: %v", err)
 		}
+
+		logger.Println("http server stopped")
 	}()
 
 	go func() {
 		logger.Println("starting the parser worker")
 
-		if err := parser.Run(ctx, config.startBlock, config.jobSchedule); err != nil {
+		if err := parser.Run(ctx, config.startBlock, config.jobSchedule); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Fatalf("failed to run parser: %v", err)
 		}
 
@@ -79,7 +81,7 @@ func main() {
 	<-stop
 
 	log.Print("Shutting down...")
-	// if Shutdown takes longer than 10, cancel the context
+	// if Shutdown takes too long, cancel the context
 	time.AfterFunc(shutdownTimeout, cancel)
 
 	if err := server.Shutdown(ctx); err != nil {

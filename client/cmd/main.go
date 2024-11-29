@@ -21,7 +21,11 @@ func main() {
 	logger.Printf("current block: %d", currentBlock)
 
 	for _, address := range config.subscribeAddresses {
-		parserClient.Subscribe(address)
+		result := parserClient.Subscribe(address)
+		if !result {
+			logger.Printf("failed to subscribe to %s", address)
+			continue
+		}
 		logger.Printf("subscribed to %s", address)
 	}
 
