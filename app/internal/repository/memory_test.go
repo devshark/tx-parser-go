@@ -32,7 +32,7 @@ func TestSaveTransaction(t *testing.T) {
 		Value: 100,
 	}
 
-	err := repo.SaveTransaction(ctx, tx)
+	err := repo.SaveTransaction(ctx, tx.From, tx)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -45,7 +45,7 @@ func TestSaveTransaction(t *testing.T) {
 		Value: 200,
 	}
 
-	err = repo.SaveTransaction(ctx, txEmptyFrom)
+	err = repo.SaveTransaction(ctx, tx.From, txEmptyFrom)
 	if err == nil {
 		t.Fatal("Expected error when saving transaction with empty From address, got nil")
 	}
@@ -58,7 +58,7 @@ func TestSaveTransaction(t *testing.T) {
 		Value: 300,
 	}
 
-	err = repo.SaveTransaction(ctx, txEmptyTo)
+	err = repo.SaveTransaction(ctx, tx.From, txEmptyTo)
 	if err == nil {
 		t.Fatal("Expected error when saving transaction with empty To address, got nil")
 	}
@@ -72,8 +72,8 @@ func TestGetTransactions(t *testing.T) {
 	tx1 := api.Transaction{Hash: "0x123", From: address, To: "0xdef", Value: 100}
 	tx2 := api.Transaction{Hash: "0x456", From: "0xghi", To: address, Value: 200}
 
-	repo.SaveTransaction(ctx, tx1)
-	repo.SaveTransaction(ctx, tx2)
+	repo.SaveTransaction(ctx, address, tx1)
+	repo.SaveTransaction(ctx, address, tx2)
 
 	// Test successful case
 	txs, err := repo.GetTransactions(ctx, address)
@@ -251,7 +251,7 @@ func TestConcurrentSaveTransaction(t *testing.T) {
 				To:    "0xdef",
 				Value: int64(i),
 			}
-			err := repo.SaveTransaction(ctx, tx)
+			err := repo.SaveTransaction(ctx, tx.From, tx)
 			if err != nil {
 				t.Errorf("Unexpected error in goroutine %d: %v", i, err)
 			}
@@ -344,7 +344,7 @@ func TestConcurrentGetTransactions(t *testing.T) {
 			To:    "0xdef",
 			Value: int64(i),
 		}
-		repo.SaveTransaction(ctx, tx)
+		repo.SaveTransaction(ctx, tx.From, tx)
 	}
 
 	const numGoroutines = 100
@@ -384,7 +384,7 @@ func TestConcurrentSaveAndGetTransactions(t *testing.T) {
 				To:    "0xdef",
 				Value: int64(i),
 			}
-			err := repo.SaveTransaction(ctx, tx)
+			err := repo.SaveTransaction(ctx, tx.From, tx)
 			if err != nil {
 				t.Errorf("Unexpected error in save goroutine %d: %v", i, err)
 			}

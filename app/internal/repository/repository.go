@@ -15,7 +15,7 @@ var (
 
 // Repository interface for data storage
 type Repository interface {
-	SaveTransaction(ctx context.Context, tx api.Transaction) error
+	SaveTransaction(ctx context.Context, address string, tx api.Transaction) error
 	GetTransactions(ctx context.Context, address string) ([]api.Transaction, error)
 	Subscribe(ctx context.Context, address string) error
 	IsSubscribed(ctx context.Context, address string) (bool, error)

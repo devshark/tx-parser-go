@@ -21,8 +21,8 @@ func NewInMemoryRepository() Repository {
 	}
 }
 
-func (r *InMemoryRepository) SaveTransaction(ctx context.Context, tx api.Transaction) error {
-	if tx.From == "" || tx.To == "" {
+func (r *InMemoryRepository) SaveTransaction(ctx context.Context, address string, tx api.Transaction) error {
+	if address == "" || tx.From == "" || tx.To == "" {
 		return ErrEmptyAddress
 	}
 
