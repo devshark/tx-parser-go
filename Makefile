@@ -1,4 +1,4 @@
-.PHONY: vendor build
+.PHONY: vendor build test
 
 vendor:
 	go mod tidy && go mod vendor

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
 	"reflect"
 	"sync"
 	"testing"
@@ -30,7 +29,7 @@ func TestSaveTransaction(t *testing.T) {
 		Hash:  "0x123",
 		From:  "0xabc",
 		To:    "0xdef",
-		Value: big.NewInt(100),
+		Value: 100,
 	}
 
 	err := repo.SaveTransaction(ctx, tx)
@@ -43,7 +42,7 @@ func TestSaveTransaction(t *testing.T) {
 		Hash:  "0x456",
 		From:  "",
 		To:    "0xdef",
-		Value: big.NewInt(200),
+		Value: 200,
 	}
 
 	err = repo.SaveTransaction(ctx, txEmptyFrom)
@@ -56,7 +55,7 @@ func TestSaveTransaction(t *testing.T) {
 		Hash:  "0x789",
 		From:  "0xabc",
 		To:    "",
-		Value: big.NewInt(300),
+		Value: 300,
 	}
 
 	err = repo.SaveTransaction(ctx, txEmptyTo)
@@ -70,8 +69,8 @@ func TestGetTransactions(t *testing.T) {
 	ctx := context.Background()
 
 	address := "0xabc"
-	tx1 := api.Transaction{Hash: "0x123", From: address, To: "0xdef", Value: big.NewInt(100)}
-	tx2 := api.Transaction{Hash: "0x456", From: "0xghi", To: address, Value: big.NewInt(200)}
+	tx1 := api.Transaction{Hash: "0x123", From: address, To: "0xdef", Value: 100}
+	tx2 := api.Transaction{Hash: "0x456", From: "0xghi", To: address, Value: 200}
 
 	repo.SaveTransaction(ctx, tx1)
 	repo.SaveTransaction(ctx, tx2)
@@ -250,7 +249,7 @@ func TestConcurrentSaveTransaction(t *testing.T) {
 				Hash:  fmt.Sprintf("0x%d", i),
 				From:  "0xabc",
 				To:    "0xdef",
-				Value: big.NewInt(int64(i)),
+				Value: int64(i),
 			}
 			err := repo.SaveTransaction(ctx, tx)
 			if err != nil {
@@ -343,7 +342,7 @@ func TestConcurrentGetTransactions(t *testing.T) {
 			Hash:  fmt.Sprintf("0x%d", i),
 			From:  "0xabc",
 			To:    "0xdef",
-			Value: big.NewInt(int64(i)),
+			Value: int64(i),
 		}
 		repo.SaveTransaction(ctx, tx)
 	}
@@ -383,7 +382,7 @@ func TestConcurrentSaveAndGetTransactions(t *testing.T) {
 				Hash:  fmt.Sprintf("0x%d", i),
 				From:  "0xabc",
 				To:    "0xdef",
-				Value: big.NewInt(int64(i)),
+				Value: int64(i),
 			}
 			err := repo.SaveTransaction(ctx, tx)
 			if err != nil {
