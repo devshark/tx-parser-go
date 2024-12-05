@@ -80,6 +80,6 @@ func (h *httpHandler) PostSubscribeAddress(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *httpHandler) HandleHealthCheck(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("OK"))
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

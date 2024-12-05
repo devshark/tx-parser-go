@@ -13,6 +13,10 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/build /app
+# run as regular, non-root user
+RUN addgroup -S app && adduser -S app -G app
+USER app
 
-CMD [ "./app/http" ]
+COPY --from=builder /app/build/ /app/
+
+CMD [ "/app/http" ]

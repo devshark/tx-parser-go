@@ -19,7 +19,7 @@ processes = ['app']
 [env]
 PUBLIC_NODE_URL = "https://ethereum-rpc.publicnode.com/"
 PORT = "8080"
-START_BLOCK = "21292394"
+START_BLOCK = "21337490"
 JOB_SCHEDULE = "1s"
 
 [[vm]]
