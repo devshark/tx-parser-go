@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  app:
+    image: tx-parser-go:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    environment:
+      PORT: 8080
+      PUBLIC_NODE_URL: https://ethereum-rpc.publicnode.com/
+      START_BLOCK: 21337490
+      JOB_SCHEDULE: 1s
+    ports:
+      - "8080:8080"

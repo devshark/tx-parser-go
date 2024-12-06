@@ -4,7 +4,11 @@ vendor:
 	go mod tidy && go mod vendor
 
 build:
-	go build -o build/http ./app/cmd/
+	CGO_ENABLED=0 go build  -ldflags \
+		"-w -s" \
+		-o build/http \
+		-tags netgo \
+		-a ./app/cmd/
 
 test:
 	go test -v ./...
