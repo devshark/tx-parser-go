@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -28,8 +29,14 @@ func NewParserWorker(blockchain blockchain.BlockchainClient, repo repository.Rep
 }
 
 // Run method with improved concurrency and error handling
-func (p *ParserWorker) Run(ctx context.Context, startBlock int64, schedule time.Duration) error {
-	lastParsedBlock := startBlock
+func (p *ParserWorker) Run(ctx context.Context, schedule time.Duration) error {
+	// fetch latest block number first
+	// if it fails, return the error so it will handle the recovery sequence
+	lastParsedBlock, err := p.blockchain.GetLatestBlockNumber(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get latest block number: %w", err)
+	}
+
 	// If the context is cancelled, exit immediately
 	for {
 		select {

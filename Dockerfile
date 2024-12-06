@@ -9,7 +9,9 @@ WORKDIR /app
 
 RUN make test && make build
 
-FROM alpine:latest
+FROM alpine:3.21
+
+RUN apk update && apk upgrade && apk add --no-cache ca-certificates
 
 WORKDIR /app
 

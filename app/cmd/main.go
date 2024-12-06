@@ -62,7 +62,7 @@ func main() {
 	go func() {
 		logger.Println("starting the parser worker")
 
-		if err := parser.Run(ctx, config.startBlock, config.jobSchedule); err != nil && !errors.Is(err, context.Canceled) {
+		if err := parser.Run(ctx, config.jobSchedule); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Fatalf("failed to run parser: %v", err)
 		}
 
@@ -87,7 +87,6 @@ func main() {
 type Config struct {
 	publicNodeURL string
 	port          int64
-	startBlock    int64
 	jobSchedule   time.Duration
 }
 
@@ -95,7 +94,6 @@ func NewConfig() *Config {
 	return &Config{
 		publicNodeURL: env.GetEnv("PUBLIC_NODE_URL", "https://ethereum-rpc.publicnode.com/"),
 		port:          env.GetEnvInt64("PORT", 8080),
-		startBlock:    env.GetEnvInt64("START_BLOCK", 21292394),
 		jobSchedule:   env.GetEnvDuration("JOB_SCHEDULE", 5*time.Second),
 	}
 }

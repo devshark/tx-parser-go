@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,14 +15,25 @@ import (
 
 // MockBlockchainClient implements blockchain.BlockchainClient for testing
 type MockBlockchainClient struct {
-	latestBlockNumber int64
-	blocks            map[int64]*api.Block
-	mu                sync.RWMutex
+	initialBlockNumber      int64
+	latestBlockNumber       int64
+	blocks                  map[int64]*api.Block
+	mu                      sync.RWMutex
+	getLastParsedBlockCalls atomic.Int32
 }
 
 func (m *MockBlockchainClient) GetLatestBlockNumber(ctx context.Context) (int64, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	// the first time we call GetLastParsedBlock, we need to return the first block number
+	// because the worker will start from the first block and work it's way up to the latest block
+	// all subsequent calls will just return the latest block number
+	m.getLastParsedBlockCalls.Add(1)
+	if m.getLastParsedBlockCalls.Load() == 1 {
+		return m.initialBlockNumber, nil
+	}
+
 	return m.latestBlockNumber, nil
 }
 
@@ -45,7 +57,8 @@ func TestNewParserWorker(t *testing.T) {
 
 func TestParserWorker_Run(t *testing.T) {
 	mockBC := &MockBlockchainClient{
-		latestBlockNumber: 10,
+		initialBlockNumber: 0,
+		latestBlockNumber:  10,
 		blocks: map[int64]*api.Block{
 			1: {Number: 1, Transactions: []api.Transaction{{From: "0x1", To: "0x2", Hash: "0x999", Value: 100}}},
 			2: {Number: 2, Transactions: []api.Transaction{{From: "0x2", To: "0x3", Hash: "0x888", Value: 200}}},
@@ -62,7 +75,7 @@ func TestParserWorker_Run(t *testing.T) {
 	mockRepo.Subscribe(ctx, "0x1")
 	mockRepo.Subscribe(ctx, "0x2")
 
-	err := worker.Run(ctx, 0, 100*time.Millisecond)
+	err := worker.Run(ctx, 100*time.Millisecond)
 
 	<-time.After(1 * time.Second)
 
