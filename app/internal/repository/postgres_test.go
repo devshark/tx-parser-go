@@ -197,7 +197,7 @@ func TestPostgresGetLastParsedBlock(t *testing.T) {
 	defer cleanup()
 
 	// Insert a block
-	_, err = db.ExecContext(ctx, "INSERT INTO blocks (block_number) VALUES ($1)", 12345)
+	_, err = db.ExecContext(ctx, "INSERT INTO blocks (id, block_number) VALUES (1, $1)", 12345)
 	if err != nil {
 		t.Fatalf("Failed to insert block: %v", err)
 	}
@@ -219,11 +219,11 @@ func TestPostgresUpdateLastParsedBlock(t *testing.T) {
 	repo, _, cleanup := setupPostgresNewPostgresRepository(t, ctx)
 	defer cleanup()
 
-	// Update last parsed block
-	newBlock := int64(54321)
-	err = repo.UpdateLastParsedBlock(ctx, newBlock)
+	// Test updating with a lower block number
+	lowerBlock := int64(12345)
+	err = repo.UpdateLastParsedBlock(ctx, lowerBlock)
 	if err != nil {
-		t.Fatalf("Failed to update last parsed block: %v", err)
+		t.Fatalf("Failed to update last parsed block with lower number: %v", err)
 	}
 
 	// Verify the update
@@ -231,15 +231,15 @@ func TestPostgresUpdateLastParsedBlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get last parsed block: %v", err)
 	}
-	if lastBlock != newBlock {
-		t.Errorf("Expected last block to be %d, got %d", newBlock, lastBlock)
+	if lastBlock != lowerBlock {
+		t.Errorf("Expected last block to be %d, got %d", lowerBlock, lastBlock)
 	}
 
-	// Test updating with a lower block number
-	lowerBlock := int64(12345)
-	err = repo.UpdateLastParsedBlock(ctx, lowerBlock)
+	// Update last parsed block
+	newBlock := int64(54321)
+	err = repo.UpdateLastParsedBlock(ctx, newBlock)
 	if err != nil {
-		t.Fatalf("Failed to update last parsed block with lower number: %v", err)
+		t.Fatalf("Failed to update last parsed block: %v", err)
 	}
 
 	// The block number should remain the same as before

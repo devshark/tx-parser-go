@@ -19,10 +19,26 @@ The project is structured as follows:
 
 ## How to run tests
 
-The tests can be run by executing `make test` from the root directory.
+The tests can be run by executing `make test-short` from the root directory.
+
+### Testing with real postgres database
+
+Start a Postgres container by running the service from docker compose. Wait until you see a log "database system is ready to accept connections"
+
+```sh
+docker compose up postgres
+[+] Running 3/0
+ ✔ Network tx-parser-go_parser-app      Created                                                                                                               0.0s
+ ✔ Volume "tx-parser-go_postgres-data"  Created                                                                                                               0.0s
+ ✔ Container tx-parser-go-postgres-1    Created                                                                                                               0.0s
+...
+... LOG:  database system is ready to accept connections
+```
+
+and then run the test with `make test`
 
 ## How to run the server and client
 
 The server codes can be run by executing `make run-server` from the root directory. It will spawn a worker and http server running on port `8080` (or specify by providing `PORT` env).
 
-The client code simply just calls the server http to subscribe desired addresses and then indefinitely fetching the transactions.
+The client code simply just calls the server http to subscribe desired addresses and then indefinitely fetching the transactions. Run the client with `make run-client`
