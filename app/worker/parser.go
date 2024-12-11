@@ -75,6 +75,7 @@ func (p *ParserWorker) Run(ctx context.Context, schedule time.Duration) error {
 func (p *ParserWorker) parseBlock(ctx context.Context, blockNum int64) error {
 	block, err := p.blockchain.GetBlockByNumber(ctx, blockNum)
 	if err != nil {
+		p.logger.Printf("failed to get block %d: %v", blockNum, err)
 		return err
 	}
 
@@ -84,6 +85,7 @@ func (p *ParserWorker) parseBlock(ctx context.Context, blockNum int64) error {
 
 	for _, tx := range block.Transactions {
 		if err := p.processTx(ctx, tx); err != nil {
+			p.logger.Printf("failed to process transaction: %v", err)
 			return err
 		}
 	}
@@ -102,11 +104,13 @@ func (p *ParserWorker) processTx(ctx context.Context, tx api.Transaction) error 
 
 		subscribed, err := p.repo.IsSubscribed(ctx, addr)
 		if err != nil {
+			p.logger.Printf("failed to check if address %s is subscribed: %v", addr, err)
 			return err
 		}
 
 		if subscribed {
 			if err = p.repo.SaveTransaction(ctx, addr, tx); err != nil {
+				p.logger.Printf("failed to save transaction for address %s: %v", addr, err)
 				return err
 			}
 		}
