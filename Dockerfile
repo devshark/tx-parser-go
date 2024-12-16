@@ -7,7 +7,7 @@ COPY ./ /app
 
 WORKDIR /app
 
-RUN make test && make build
+RUN make vendor && make short-test && make build
 
 FROM alpine:3.21
 

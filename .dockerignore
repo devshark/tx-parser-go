@@ -37,6 +37,7 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+vendor
 
 # Logs
 *.log
