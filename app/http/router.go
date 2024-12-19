@@ -32,12 +32,6 @@ func NewRouter(
 	return mux
 }
 
-func (h *httpHandler) WithCustomLogger(logger *log.Logger) *httpHandler {
-	h.logger = logger
-
-	return h
-}
-
 func NewHttpServer(httpHandlers http.Handler, port int64, httpReadTimeout, httpWriteTimeout time.Duration) *http.Server {
 	return &http.Server{
 		Addr:              fmt.Sprintf(":%d", port),
