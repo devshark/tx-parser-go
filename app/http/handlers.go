@@ -12,9 +12,10 @@ import (
 )
 
 type httpHandler struct {
-	bcClient blockchain.BlockchainClient
-	repo     repository.Repository
-	logger   *log.Logger
+	bcClient        blockchain.BlockchainClient
+	transactionRepo repository.TransactionRepository
+	subscriberRepo  repository.SubscriberRepository
+	logger          *log.Logger
 }
 
 func (h *httpHandler) GetCurrentBlock(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +46,7 @@ func (h *httpHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	transactions, err := h.repo.GetTransactions(ctx, address)
+	transactions, err := h.transactionRepo.GetTransactions(ctx, address)
 	if err != nil {
 		h.logger.Printf("Failed to get transactions for address %s: %v", address, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -70,7 +71,7 @@ func (h *httpHandler) PostSubscribeAddress(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := h.repo.Subscribe(ctx, address); err != nil {
+	if err := h.subscriberRepo.Subscribe(ctx, address); err != nil {
 		h.logger.Printf("Failed to subscribe address %s: %v", address, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -32,11 +32,13 @@ func main() {
 
 	blockchainClient := blockchain.NewPublicNodeClient(config.publicNodeURL, logger)
 
-	repository := repository.NewInMemoryRepository()
+	txRepo := repository.NewInMemoryTransactionRepository()
+	subRepo := repository.NewInMemorySubscriberRepository()
+	blockRepo := repository.NewInMemoryBlockRepository()
 
-	parser := worker.NewParserWorker(blockchainClient, repository, logger)
+	parser := worker.NewParserWorker(blockchainClient, txRepo, subRepo, blockRepo).WithCustomLogger(logger)
 
-	router := httpHandler.NewRouter(blockchainClient, repository, logger)
+	router := httpHandler.NewRouter(blockchainClient, txRepo, subRepo, logger)
 	server := httpHandler.NewHttpServer(router, config.port, httpReadTimeout, httpWriteTimeout)
 
 	stop := make(chan os.Signal, 1)
@@ -59,12 +61,16 @@ func main() {
 		logger.Println("http server stopped")
 	}()
 
+	workerStopped := make(chan struct{})
+
 	go func() {
 		logger.Println("starting the parser worker")
 
 		if err := parser.Run(ctx, config.jobSchedule); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Fatalf("failed to run parser: %v", err)
 		}
+
+		close(workerStopped)
 
 		logger.Println("parser worker stopped")
 	}()
@@ -80,6 +86,8 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatal("Shutdown", err)
 	}
+
+	<-workerStopped
 
 	log.Print("Gracefully stopped.")
 }

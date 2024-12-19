@@ -10,13 +10,18 @@ import (
 	"github.com/devshark/tx-parser-go/app/internal/repository"
 )
 
-func NewRouter(bcClient blockchain.BlockchainClient, repo repository.Repository, logger *log.Logger) http.Handler {
+func NewRouter(
+	bcClient blockchain.BlockchainClient,
+	transactionRepo repository.TransactionRepository,
+	subscriberRepo repository.SubscriberRepository,
+	logger *log.Logger) http.Handler {
 	mux := http.NewServeMux()
 
 	handler := &httpHandler{
-		bcClient: bcClient,
-		repo:     repo,
-		logger:   logger,
+		bcClient:        bcClient,
+		transactionRepo: transactionRepo,
+		subscriberRepo:  subscriberRepo,
+		logger:          logger,
 	}
 
 	mux.HandleFunc("GET /healthz", handler.HandleHealthCheck)
@@ -25,6 +30,12 @@ func NewRouter(bcClient blockchain.BlockchainClient, repo repository.Repository,
 	mux.HandleFunc("POST /subscribe/{address}", handler.PostSubscribeAddress)
 
 	return mux
+}
+
+func (h *httpHandler) WithCustomLogger(logger *log.Logger) *httpHandler {
+	h.logger = logger
+
+	return h
 }
 
 func NewHttpServer(httpHandlers http.Handler, port int64, httpReadTimeout, httpWriteTimeout time.Duration) *http.Server {

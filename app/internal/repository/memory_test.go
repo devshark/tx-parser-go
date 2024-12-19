@@ -14,14 +14,29 @@ import (
 )
 
 func TestNewInMemoryRepository(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
-	if repo == nil {
+	// tiny test that enforces implementation
+	var _ repository.TransactionRepository = repository.NewInMemoryTransactionRepository()
+	var _ repository.BlockRepository = repository.NewInMemoryBlockRepository()
+	var _ repository.SubscriberRepository = repository.NewInMemorySubscriberRepository()
+
+	repoTx := repository.NewInMemoryTransactionRepository()
+	if repoTx == nil {
+		t.Fatal("Expected non-nil repository")
+	}
+
+	repoSub := repository.NewInMemorySubscriberRepository()
+	if repoSub == nil {
+		t.Fatal("Expected non-nil repository")
+	}
+
+	repoBlock := repository.NewInMemoryBlockRepository()
+	if repoBlock == nil {
 		t.Fatal("Expected non-nil repository")
 	}
 }
 
 func TestSaveTransaction(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryTransactionRepository()
 	ctx := context.Background()
 
 	// Test successful case
@@ -65,7 +80,7 @@ func TestSaveTransaction(t *testing.T) {
 }
 
 func TestGetTransactions(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryTransactionRepository()
 	ctx := context.Background()
 
 	address := "0xabc"
@@ -105,7 +120,7 @@ func TestGetTransactions(t *testing.T) {
 }
 
 func TestSubscribe(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemorySubscriberRepository()
 	ctx := context.Background()
 
 	// Test successful case
@@ -129,7 +144,7 @@ func TestSubscribe(t *testing.T) {
 }
 
 func TestIsSubscribed(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemorySubscriberRepository()
 	ctx := context.Background()
 
 	address1 := "0xabc"
@@ -162,7 +177,7 @@ func TestIsSubscribed(t *testing.T) {
 }
 
 func TestGetLastParsedBlock(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryBlockRepository()
 	ctx := context.Background()
 
 	// Test initial state
@@ -191,7 +206,7 @@ func TestGetLastParsedBlock(t *testing.T) {
 }
 
 func TestUpdateLastParsedBlock(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryBlockRepository()
 	ctx := context.Background()
 
 	// Test successful update
@@ -235,7 +250,7 @@ func containsTransaction(txs []api.Transaction, tx api.Transaction) bool {
 }
 
 func TestConcurrentSaveTransaction(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryTransactionRepository()
 	ctx := context.Background()
 
 	const numGoroutines = 100
@@ -270,7 +285,7 @@ func TestConcurrentSaveTransaction(t *testing.T) {
 }
 
 func TestConcurrentSubscribe(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemorySubscriberRepository()
 	ctx := context.Background()
 
 	const numGoroutines = 100
@@ -303,7 +318,7 @@ func TestConcurrentSubscribe(t *testing.T) {
 }
 
 func TestConcurrentUpdateLastParsedBlock(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryBlockRepository()
 	ctx := context.Background()
 
 	const numGoroutines = 100
@@ -333,7 +348,7 @@ func TestConcurrentUpdateLastParsedBlock(t *testing.T) {
 }
 
 func TestConcurrentGetTransactions(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryTransactionRepository()
 	ctx := context.Background()
 
 	// Prepare some transactions
@@ -368,7 +383,7 @@ func TestConcurrentGetTransactions(t *testing.T) {
 }
 
 func TestConcurrentSaveAndGetTransactions(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemoryTransactionRepository()
 	ctx := context.Background()
 
 	const numGoroutines = 100
@@ -411,7 +426,7 @@ func TestConcurrentSaveAndGetTransactions(t *testing.T) {
 }
 
 func TestConcurrentSubscribeAndIsSubscribed(t *testing.T) {
-	repo := repository.NewInMemoryRepository()
+	repo := repository.NewInMemorySubscriberRepository()
 	ctx := context.Background()
 
 	const numGoroutines = 100
