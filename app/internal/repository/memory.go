@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -16,23 +17,38 @@ type InMemoryRepository struct {
 	lastParsedBlock int64
 }
 
-func NewInMemoryRepository() Repository {
-	return &InMemoryRepository{
+type InMemoryTransactionRepository struct {
+	sync.RWMutex
+	transactions map[string][]api.Transaction
+}
+
+type InMemorySubscriberRepository struct {
+	sync.RWMutex
+	subscribers map[string]struct{}
+}
+
+type InMemoryBlockRepository struct {
+	sync.RWMutex
+	lastParsedBlock int64
+}
+
+func NewInMemoryTransactionRepository() *InMemoryTransactionRepository {
+	return &InMemoryTransactionRepository{
 		transactions: make(map[string][]api.Transaction),
 	}
 }
-func (r *InMemoryRepository) SaveTransaction(ctx context.Context, address string, tx api.Transaction) error {
-	address = strings.TrimSpace(strings.ToLower(address))
 
-	if address == "" {
-		return ErrEmptyAddress
+func (r *InMemoryTransactionRepository) SaveTransaction(ctx context.Context, address string, tx api.Transaction) error {
+	r.Lock()
+	defer r.Unlock()
+
+	cleanAddress, err := ValidateAddress(address)
+	if err != nil {
+		return fmt.Errorf("ValidateAddress: %w", err)
 	}
 
-	r.muTx.Lock()
-	defer r.muTx.Unlock()
-
 	// skip if tx hash already exists
-	txs, ok := r.transactions[address]
+	txs, ok := r.transactions[cleanAddress]
 	if ok {
 		for _, _tx := range txs {
 			if strings.EqualFold(_tx.Hash, tx.Hash) {
@@ -41,76 +57,86 @@ func (r *InMemoryRepository) SaveTransaction(ctx context.Context, address string
 		}
 	}
 
-	r.transactions[address] = append(txs, tx)
+	r.transactions[cleanAddress] = append(txs, tx)
 
 	return nil
 }
 
-func (r *InMemoryRepository) GetTransactions(ctx context.Context, address string) ([]api.Transaction, error) {
-	address = strings.TrimSpace(strings.ToLower(address))
+func (r *InMemoryTransactionRepository) GetTransactions(ctx context.Context, address string) ([]api.Transaction, error) {
+	r.RLock()
+	defer r.RUnlock()
 
-	if address == "" {
-		return nil, ErrEmptyAddress
+	cleanAddress, err := ValidateAddress(address)
+	if err != nil {
+		return nil, fmt.Errorf("ValidateAddress: %w", err)
 	}
 
-	r.muTx.RLock()
-	defer r.muTx.RUnlock()
+	return r.transactions[cleanAddress], nil
+}
 
-	return r.transactions[address], nil
+func NewInMemorySubscriberRepository() *InMemorySubscriberRepository {
+	return &InMemorySubscriberRepository{
+		subscribers: make(map[string]struct{}),
+	}
 }
 
 // Subscribe creates a new transaction slice for the given address if it doesn't exist; does not overwrite existing address' transactions
-func (r *InMemoryRepository) Subscribe(ctx context.Context, address string) error {
-	address = strings.TrimSpace(strings.ToLower(address))
+func (r *InMemorySubscriberRepository) Subscribe(ctx context.Context, address string) error {
+	r.Lock()
+	defer r.Unlock()
 
-	if address == "" {
-		return ErrEmptyAddress
+	cleanAddress, err := ValidateAddress(address)
+	if err != nil {
+		return fmt.Errorf("ValidateAddress: %w", err)
 	}
 
-	r.muTx.Lock()
-	defer r.muTx.Unlock()
-
-	if _, exists := r.transactions[address]; !exists {
-		r.transactions[address] = make([]api.Transaction, 0)
+	if _, exists := r.subscribers[cleanAddress]; !exists {
+		r.subscribers[cleanAddress] = struct{}{}
 	}
 
 	return nil
 }
 
-func (r *InMemoryRepository) IsSubscribed(ctx context.Context, address string) (bool, error) {
-	address = strings.TrimSpace(strings.ToLower(address))
+func (r *InMemorySubscriberRepository) IsSubscribed(ctx context.Context, address string) (bool, error) {
+	r.RLock()
+	defer r.RUnlock()
 
-	if address == "" {
-		return false, ErrEmptyAddress
+	cleanAddress, err := ValidateAddress(address)
+	if err != nil {
+		return false, fmt.Errorf("ValidateAddress: %w", err)
 	}
 
-	r.muTx.RLock()
-	defer r.muTx.RUnlock()
-
-	_, exists := r.transactions[address]
+	_, exists := r.subscribers[cleanAddress]
 
 	return exists, nil
 }
 
-func (r *InMemoryRepository) GetLastParsedBlock(ctx context.Context) (int64, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+func NewInMemoryBlockRepository() *InMemoryBlockRepository {
+	return &InMemoryBlockRepository{}
+}
+
+func (r *InMemoryBlockRepository) GetLastParsedBlock(ctx context.Context) (int64, error) {
+	r.RLock()
+	defer r.RUnlock()
 
 	return r.lastParsedBlock, nil
 }
 
-func (r *InMemoryRepository) UpdateLastParsedBlock(ctx context.Context, blockNumber int64) error {
-	if blockNumber < 0 {
-		return ErrNegativeBlock
+func (r *InMemoryBlockRepository) UpdateLastParsedBlock(ctx context.Context, blockNumber int64) error {
+	r.Lock()
+	defer r.Unlock()
+
+	if valid, err := ValidateBlock(ctx, blockNumber); err != nil {
+		return err
+	} else if !valid {
+		return fmt.Errorf("%w: %w", ErrInvalidBlock, err)
 	}
 
 	if blockNumber < r.lastParsedBlock {
 		return ErrInvalidBlock
 	}
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	r.lastParsedBlock = blockNumber
+
 	return nil
 }

@@ -14,18 +14,32 @@ import (
 )
 
 type ParserWorker struct {
-	blockchain blockchain.BlockchainClient
-	repo       repository.Repository
-	logger     *log.Logger
+	blockchain      blockchain.BlockchainClient
+	transactionRepo repository.TransactionRepository
+	subscriberRepo  repository.SubscriberRepository
+	blockRepo       repository.BlockRepository
+	logger          *log.Logger
 }
 
 // NewParserWorker creates a new ParserWorker with required arguments
-func NewParserWorker(blockchain blockchain.BlockchainClient, repo repository.Repository, logger *log.Logger) *ParserWorker {
+func NewParserWorker(
+	blockchain blockchain.BlockchainClient,
+	transactionRepo repository.TransactionRepository,
+	subscriberRepo repository.SubscriberRepository,
+	blockRepo repository.BlockRepository) *ParserWorker {
 	return &ParserWorker{
-		blockchain: blockchain,
-		repo:       repo,
-		logger:     logger,
+		blockchain:      blockchain,
+		transactionRepo: transactionRepo,
+		subscriberRepo:  subscriberRepo,
+		blockRepo:       blockRepo,
+		logger:          log.Default(),
 	}
+}
+
+func (p *ParserWorker) WithCustomLogger(logger *log.Logger) *ParserWorker {
+	p.logger = logger
+
+	return p
 }
 
 // Run method with improved concurrency and error handling
@@ -64,7 +78,7 @@ func (p *ParserWorker) Run(ctx context.Context, schedule time.Duration) error {
 				}(_blockNum)
 			}
 
-			p.repo.UpdateLastParsedBlock(ctx, latestBlock)
+			p.blockRepo.UpdateLastParsedBlock(ctx, latestBlock)
 			// Get the last block number that we've parsed
 			lastParsedBlock = latestBlock
 		}
@@ -100,13 +114,13 @@ func (p *ParserWorker) processTx(ctx context.Context, tx api.Transaction) error 
 			continue
 		}
 
-		subscribed, err := p.repo.IsSubscribed(ctx, addr)
+		subscribed, err := p.subscriberRepo.IsSubscribed(ctx, addr)
 		if err != nil {
 			return err
 		}
 
 		if subscribed {
-			if err = p.repo.SaveTransaction(ctx, addr, tx); err != nil {
+			if err = p.transactionRepo.SaveTransaction(ctx, addr, tx); err != nil {
 				return err
 			}
 		}

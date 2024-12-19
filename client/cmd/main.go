@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/devshark/tx-parser-go/api"
 	"github.com/devshark/tx-parser-go/client"
 	"github.com/devshark/tx-parser-go/pkg/env"
 )
@@ -15,7 +17,9 @@ func main() {
 	config := NewConfig()
 	logger := log.Default()
 
-	parserClient := client.NewClient(config.parserUrl)
+	var parserClient api.Parser = client.
+		NewClient(config.parserUrl).
+		WithCustomHttpDoer(http.DefaultClient)
 
 	currentBlock := parserClient.GetCurrentBlock()
 	logger.Printf("current block: %d", currentBlock)
@@ -52,7 +56,6 @@ func main() {
 			}
 		}
 	}
-
 }
 
 type Config struct {
