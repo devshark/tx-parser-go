@@ -14,26 +14,6 @@ var (
 	ErrInvalidBlock  = errors.New("block number is not valid")
 )
 
-// type Repository interface {
-// 	BlockRepository
-// 	SubscriberRepository
-// 	TransactionRepository
-// }
-
-// type implRepository struct {
-// 	BlockRepository
-// 	SubscriberRepository
-// 	TransactionRepository
-// }
-
-// func NewRepository(blockRepo BlockRepository, txRepo TransactionRepository, subRepo SubscriberRepository) Repository {
-// 	return &implRepository{
-// 		BlockRepository:       blockRepo,
-// 		TransactionRepository: txRepo,
-// 		SubscriberRepository:  subRepo,
-// 	}
-// }
-
 // Repository interface for data storage
 type BlockRepository interface {
 	GetLastParsedBlock(ctx context.Context) (int64, error)

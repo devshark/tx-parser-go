@@ -126,6 +126,12 @@ func (r *InMemoryBlockRepository) UpdateLastParsedBlock(ctx context.Context, blo
 	r.Lock()
 	defer r.Unlock()
 
+	if valid, err := ValidateBlock(ctx, blockNumber); err != nil {
+		return err
+	} else if !valid {
+		return fmt.Errorf("%w: %w", ErrInvalidBlock, err)
+	}
+
 	if blockNumber < r.lastParsedBlock {
 		return ErrInvalidBlock
 	}
