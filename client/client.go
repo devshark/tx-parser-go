@@ -10,13 +10,17 @@ import (
 	"github.com/devshark/tx-parser-go/api"
 )
 
+type Doer interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
 type Client struct {
 	baseUrl string
 	logger  *log.Logger
-	client  *http.Client
+	client  Doer
 }
 
-func NewClient(baseUrl string) api.Parser {
+func NewClient(baseUrl string) *Client {
 	return &Client{
 		baseUrl: baseUrl,
 		logger:  log.Default(),
@@ -24,7 +28,7 @@ func NewClient(baseUrl string) api.Parser {
 	}
 }
 
-func (c *Client) WithCustomHttpClient(client *http.Client) *Client {
+func (c *Client) WithCustomHttpDoer(client Doer) *Client {
 	c.client = client
 
 	return c
